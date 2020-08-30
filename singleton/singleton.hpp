@@ -26,6 +26,7 @@ SOFTWARE.
 #ifndef OKDP_SINGLETON_HPP
 #define OKDP_SINGLETON_HPP
 
+#include "../utils/lock.hpp"
 #include <cstdlib>
 #include <new>
 
@@ -36,15 +37,15 @@ namespace okdp
 /*!
 @brief a class template to implement singleton pattern
 @tparam T type for singleton class
-@tparam LifeTime type is a bool value that false is not supported dead-reference and true is on the contrary.
+@tparam LongLifeTime type is a bool value that false is not supported dead-reference and true is on the contrary.
 
 @subclass Any subclass should use CRTP to become a singleton type. 
-For example, class Log : public okdp::singleton<T> {} // non-dead-reference version
-	     class Log : public okdp::singleton<T, true> {} // dead-reference version
+For example, class Log : public okdp::singleton<T> {}; // non-dead-reference version
+	     class Log : public okdp::singleton<T, true> {}; // dead-reference version
 
 @since version 1.0.0
 */
-template<typename T, bool LifeTime = false> class singleton;
+template<typename T, bool LongLifeTime = false> class singleton;
 
 template<typename T>
 class singleton<T, false>
@@ -61,11 +62,13 @@ protected:
 	virtual ~singleton() {}
 
 private:
-	singleton(const singleton&);
-	singleton& operator=(const singleton&);
-	singleton(singleton&&);
-	singleton& operator=(singleton&&);
+	singleton(const singleton&) = delete;
+	singleton& operator=(const singleton&) = delete;
+	singleton(singleton&&) = delete;
+	singleton& operator=(singleton&&) = delete;
 };
+
+
 
 template<typename T>
 class singleton<T, true>
@@ -75,7 +78,12 @@ public:
 	{
 		if(!pInstance_)
 		{
-			destroyed_ ? on_dead_reference() : create();
+			// DCL
+			utils::lock_guard lock;
+			if(!pInstance_)
+			{
+				destroyed_ ? on_dead_reference() : create();
+			}
 		}
 
 		return *pInstance_;
