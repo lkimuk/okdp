@@ -79,11 +79,14 @@ public:
 		if(!pInstance_)
 		{
 			// DCL
-			utils::lock_guard lock;
+			lock_.lock();
+
 			if(!pInstance_)
 			{
 				destroyed_ ? on_dead_reference() : create();
 			}
+
+			lock_.unlock();
 		}
 
 		return *pInstance_;
@@ -117,6 +120,8 @@ private:
 	singleton(singleton&&);
 	singleton& operator=(singleton&&);
 
+	static utils::spin_lock lock_;
+
 protected:
 	singleton() = default;
 	virtual ~singleton()
@@ -132,7 +137,7 @@ protected:
 
 template<typename T> T* singleton<T, true>::pInstance_ = nullptr;
 template<typename T> bool singleton<T, true>::destroyed_ = false;
-
+template<typename T> utils::spin_lock singleton<T, true>::lock_;
 
 } // namespace okdp
 

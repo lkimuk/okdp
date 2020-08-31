@@ -46,18 +46,6 @@ public:
 };
 
 
-// spin_lock wrapper
-class lock_guard
-{
-private:
-	spin_lock lock_;
-
-public:
-	lock_guard() { lock_.lock(); }
-	~lock_guard() { lock_.unlock(); }
-};
-
-
 } // namespace utils
 } // namespace okdp
 
