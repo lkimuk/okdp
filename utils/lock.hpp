@@ -29,9 +29,7 @@ SOFTWARE.
 #include <atomic>
 
 
-namespace okdp
-{
-namespace utils
+namespace okdp::utils
 {
 
 
@@ -46,8 +44,7 @@ public:
 };
 
 
-} // namespace utils
-} // namespace okdp
+} // namespace okdp::utils
 
 
 #endif // OKDP_UTILS_LOCK_HPP
