@@ -92,7 +92,7 @@ using push_back = typename push_backT<List, NewElement>::Type;
 
 // Indexing of the type_list
 template<typename List, unsigned IDX>
-class type_index : public type_index<tail_type<List>, N - 1> {};
+class type_index : public type_index<tail_type<List>, IDX - 1> {};
 
 template<typename List>
 class type_index<List, 0> : public head_type<List> {};
@@ -152,7 +152,7 @@ class reverse_typelist<List, false>
 
 // basis case:
 template<typename List>
-class rever_typelist<List, true>
+class reverse_typelist<List, true>
 {
 public:
 	using Type = List;
@@ -194,7 +194,7 @@ class transformT<List, MetaFun, false>
 {};
 
 // basis case:
-template<typename List, tempalte<typename T> class MetaFun>
+template<typename List, template<typename T> class MetaFun>
 class transformT<List, MetaFun, true>
 {
 public:
@@ -202,7 +202,53 @@ public:
 };
 
 
-// ......
+// Generates scatter hierarchy
+template<typename List, template<typename T> class MetaFun,
+	bool Empty = is_empty<List>::value>
+class gen_scatter_hierarchyT;
+
+// recursive case:
+//template<typename List, template<typename T> class MetaFun>
+//class gen_scatter_hierarchyT<List, MetaFun, false>
+//	: public gen_scatter_hierarchyT<head_type<List>, MetaFun>,
+//	  public gen_scatter_hierarchyT<tail_type<List>, MetaFun>
+//{};
+
+template<typename... Ts, template<typename T> class MetaFun>
+class gen_scatter_hierarchyT<type_list<Ts...>, MetaFun, false>
+	: public gen_scatter_hierarchyT<head_type<type_list<Ts...>>, MetaFun>,
+	  public gen_scatter_hierarchyT<tail_type<type_list<Ts...>>, MetaFun>
+{};
+
+template<typename AtomicType, template<typename T> class MetaFun>
+class gen_scatter_hierarchyT<AtomicType, MetaFun, false> : public MetaFun<AtomicType>
+{};
+
+// basis case:
+template<typename List, template<typename T> class MetaFun>
+class gen_scatter_hierarchyT<List, MetaFun, true>
+{};
+
+template<typename List, template<typename T> class MetaFun>
+using gen_scatter_hierarchy = gen_scatter_hierarchyT<List, MetaFun>;
+
+
+// Generates linear hierarchy
+template<typename List, template<typename AtomicType, typename Base> class MetaFun,
+	bool Empty = is_empty<List>::value>
+class gen_linear_hierarchyT;
+
+template<typename List, template<typename AtomicType, typename Base> class MetaFun>
+class gen_linear_hierarchyT<List, MetaFun, false> : public MetaFun<head_type<List>, 
+	gen_linear_hierarchyT<head_type<tail_type<List>>, MetaFun>>
+{};
+
+template<typename List, template<typename AtomicType, typename Base> class MetaFun>
+class gen_linear_hierarchyT<List, MetaFun, true>
+{};
+
+template<typename List, template<typename AtomicType, typename Base> class MetaFun>
+using gen_linear_hierarchy = gen_linear_hierarchyT<List, MetaFun>;
 
 	
 } // namespace okdp::utils
