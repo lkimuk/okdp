@@ -64,7 +64,7 @@ public:
 /*!
 @brief a class template to implement concreate factory
 @tparam AbstractFactory type for ...
-@tparam Creator type for the way of creating products.
+@tparam Creator type for specifying the way of creating products.
 @tparam List type for typelists
 
 @since version 1.0.0
