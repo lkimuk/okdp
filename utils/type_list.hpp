@@ -27,7 +27,11 @@ SOFTWARE.
 #define OKDP_UTILS_TYPE_LIST_HPP
 
 
-namespace okdp::utils::tl
+namespace okdp
+{
+namespace utils
+{
+namespace tl
 {
 
 
@@ -266,8 +270,10 @@ template
 >
 using gen_linear_hierarchy = gen_linear_hierarchyT<List, MetaFun, Root>;
 
-	
-} // namespace okdp::utils
+
+} // namespace tl
+} // namespace utils	
+} // namespace okdp
 
 
 #endif // OKDP_UTILS_TYPE_LIST_HPP
