@@ -92,7 +92,7 @@ public:
 @brief a class template to implement concrete factory.
 @tparam AbstractFactory type for abstract factory.
 @tparam Creator type for specifying the way of creating products.
-@tparam List type for the type of all concrete product.
+@tparam List type for the type of all concrete products.
 
 @since version 1.0.0
 */
