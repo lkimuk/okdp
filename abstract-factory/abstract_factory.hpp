@@ -6,22 +6,30 @@
 #define OKDP_ABSTRACT_FACTORY_HPP
 
 #include "../utils/type_list.hpp"
+#include <typeinfo>
+#include <iostream>
 
+using namespace okdp::utils;
 
 namespace okdp
 {
 
+
 template<typename T>
 struct type2type
 {
-	using value_type = T;
+	typedef T OriginalType;	
 };
 
+
+// Generate concrete factory.
 template<typename T>
 class AbstractFactoryMetaFun
 {
 public:
-	virtual T* DoCreate(type2type<T>) = 0;
+	virtual T* DoCreate(type2type<T>)  {
+		std::cout << "do create" << typeid(T).name() << std::endl;
+	}
 	virtual ~AbstractFactoryMetaFun() {}
 };
 
@@ -34,29 +42,29 @@ public:
 @since version 1.0.0
 */
 template<typename List, template<typename> class MetaFun = AbstractFactoryMetaFun>
-class abstract_factory : public utils::gen_scatter_hierarchy<List, MetaFun>
+class abstract_factory : public tl::gen_scatter_hierarchy<List, MetaFun>
 {
 public:
 	using ProductList = List;
 	template<class T> T* Create()
 	{
 		MetaFun<T>& meta = *this;
-		return this.DoCreate(type2type<T>());
+		return this->DoCreate(type2type<T>());
 	}
 };
 
 
-template<typename ConcreateProduct, typename Base>
+template<typename ConcreteProduct, typename Base>
 class OpNewFactoryMetaFun : public Base
 {
 	using BaseProductList = typename Base::ProductList;
 protected:
-	using ProductList = typename BaseProductList::Tail;
+	using ProductList = tl::tail_type<BaseProductList>;
 public:
-	using AbstractProduct = typename BaseProductList::Head;
-	ConcreateProduct* DoCreate(type2type<AbstractProduct>)
+	using AbstractProduct = tl::head_type<BaseProductList>;
+	ConcreteProduct* DoCreate(type2type<AbstractProduct>)
 	{
-		return new ConcreateProduct;
+		return new ConcreteProduct;
 	}
 };
 
@@ -71,21 +79,22 @@ public:
 */
 template
 <
-	typename AbstractFactory,
-	template<typename, typename> class Creator = OpNewFactoryMetaFun
-	typename List = typename AbstractFactory::ProductList
+	typename AbstractFact,
+	template<typename, typename> class Creator = OpNewFactoryMetaFun,
+	typename List = typename AbstractFact::ProductList
 >
-class concreate_factory : 
-	public utils::gen_linear_hierarchy<reverse_tl<List>, Creator, AbstractFactory>
+class concrete_factory : 
+	public tl::gen_linear_hierarchy<tl::reverse<List>, Creator, AbstractFact>
 {
 public:
-	using ProductList = typename AbstractFactory::ProductList;
-	using ConcreateProductList = List;
+	using ProductList = typename AbstractFact::ProductList;
+	using ConcreteProductList = List;
 };
 
 //class PrototypeFactoryMetaFun
 
 
 } // namespace okdp
+
 
 #endif // OKDP_ABSTRACT_FACTORY_HPP
