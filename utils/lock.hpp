@@ -29,10 +29,16 @@ SOFTWARE.
 #include <atomic>
 
 
-namespace okdp::utils
+namespace okdp
+{
+namespace utils
 {
 
+/*!
+@brief add lock via memory model
 
+@since version 1.0.0
+*/
 class spin_lock
 {
 private:
@@ -44,7 +50,8 @@ public:
 };
 
 
-} // namespace okdp::utils
+} // namespace utils
+} // namespace okdp
 
 
 #endif // OKDP_UTILS_LOCK_HPP
