@@ -23,6 +23,7 @@ SOFTWARE.
 #define OKDP_ABSTRACT_FACTORY_HPP
 
 #include "../utils/type_list.hpp"
+#include <memory>
 
 
 using namespace okdp::utils; // for tl::type_list
@@ -39,57 +40,101 @@ struct type2type
 };
 
 
-
 /*!
 @brief a class template to create interface with type T.
+
 @tparam T type is the type which will be created.
 */
 template<typename T>
-class AbstractFactoryMetaFun
+class abstract_factory_meta_fun
 {
 public:
-	virtual T* DoCreate(type2type<T>) = 0; 
-	virtual ~AbstractFactoryMetaFun() {}
+	virtual T* do_create(type2type<T>) = 0; 
+	virtual std::shared_ptr<T> do_create_shared(type2type<T>) = 0;
+	virtual std::unique_ptr<T> do_create_unique(type2type<T>) = 0;
+	virtual ~abstract_factory_meta_fun() {}
 };
 
 
 /*!
 @brief a class template to implement abstract factory pattern.
-@tparam List type is a typelist.
+
+@tparam Ts variadic parameter type is the elements of the typelist.
 @tparam MetaFun type for creating abstract functions for each type in List.
 
 @since version 1.0.0
 */
-template<typename List, template<typename> class MetaFun = AbstractFactoryMetaFun>
-class abstract_factory : public tl::gen_scatter_hierarchy<List, MetaFun>
+template<typename List, template<typename> class MetaFun = abstract_factory_meta_fun>
+class abstract_factoryT : public tl::gen_scatter_hierarchy<List, MetaFun>
 {
 public:
 	using ProductList = List;
+	/// return product T by invoking new operator
 	template<class T> T* create()
 	{
 		MetaFun<T>& meta = *this;
-		return meta.DoCreate(type2type<T>());
+		return meta.do_create(type2type<T>());
 	}
+
+	template<class T> std::shared_ptr<T> create_shared()
+	{
+		MetaFun<T>& meta = *this;
+		return meta.do_create_shared(type2type<T>());
+	}
+
+	template<class T> std::unique_ptr<T> create_unique()
+	{
+		MetaFun<T>& meta = *this;
+		return meta.do_create_unique(type2type<T>());
+	}
+
+
 };
 
+template<typename... Ts>
+using abstract_factory = abstract_factoryT<tl::type_list<Ts...>>;
 
+
+/*!
+@brief class template creation_meta_fun 
+
+Creates an object by invoking the new operator or smart pointers.
+
+@tparam ConcreteProduct type for creating products.
+@tparam Base type for recursive inheriting others products(via gen_linear_hierarchy).
+*/
 template<typename ConcreteProduct, typename Base>
-class OpNewFactoryMetaFun : public Base
+class creation_meta_fun : public Base
 {
 	using BaseProductList = typename Base::ProductList;
 protected:
 	using ProductList = tl::tail_type<BaseProductList>;
 public:
+	/// return concrete product by invoking new operator
+	/// !!!note!!! if use this method to create an object, user have the responsibility to delete it.
 	using AbstractProduct = tl::head_type<BaseProductList>;
-	ConcreteProduct* DoCreate(type2type<AbstractProduct>)
+	ConcreteProduct* do_create(type2type<AbstractProduct>)
 	{
 		return new ConcreteProduct;
+	}
+
+	/// return concrete product by invoking shared_ptr
+	std::shared_ptr<ConcreteProduct> do_create_shared(type2type<AbstractProduct>)
+	{
+		return std::make_shared<ConcreteProduct>();
+	}
+
+	/// return concrete product by invoking unique_ptr
+	std::unique_ptr<ConcreteProduct> do_create_unique(type2type<AbstractProduct>)
+	{
+		return std::make_unique<ConcreteProduct>();
 	}
 };
 
 
 /*!
-@brief a class template to implement concrete factory.
+@brief recursively generates concrete productes via gen_linear_hierarchy.
+
 @tparam AbstractFactory type for abstract factory.
 @tparam Creator type for specifying the way of creating products.
 @tparam List type for the type of all concrete products.
@@ -99,7 +144,7 @@ public:
 template
 <
 	typename AbstractFact,
-	template<typename, typename> class Creator = OpNewFactoryMetaFun,
+	template<typename, typename> class Creator = creation_meta_fun,
 	typename List = typename AbstractFact::ProductList
 >
 class concrete_factory : 
