@@ -120,6 +120,10 @@ private:
 template<typename T> std::map<std::string, std::function<T*()>> object_factory<T>::map_;
 
 
+#define FACTORY_REGISTER(Base, Derived, ...) \
+	static okdp::object_factory<Base>::register_type<Derived> reg_##Derived(#Derived, ##__VA_ARGS__);
+
+
 } // namespace okdp
 
 #endif // OKDP_OBJECT_FACTORY_HPP
