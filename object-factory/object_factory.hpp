@@ -32,6 +32,10 @@ SOFTWARE.
 #include <stdexcept>
 #include <memory>
 
+#if defined(__cplusplus) && __cplusplus >= 201709L 
+	#include <concepts>
+#endif
+
 
 namespace okdp
 {
@@ -58,6 +62,9 @@ public:
 	@tparam T the creating type.
 	*/
 	template<typename T>
+#if defined(__cplusplus) && __cplusplus >= 201709L 
+	requires std::derived_from<T, AbstractProduct>
+#endif
 	struct register_type
 	{
 		// registers T into object factory.
