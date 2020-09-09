@@ -51,10 +51,10 @@ template<typename T>
 class singleton<T, false>
 {
 public:
-
-	static T& instance() {
-		static T obj;
-		return obj;	
+	template<typename... Args>
+	static T& instance(Args&&... args) {
+		static T obj(std::forward<Args>(args)...);
+		return obj;
 	}
 
 protected:
@@ -74,7 +74,8 @@ template<typename T>
 class singleton<T, true>
 {
 public:
-	static T& instance() 
+	template<typename... Args>
+	static T& instance(Args&&... args) 
 	{
 		if(!pInstance_)
 		{
@@ -83,7 +84,7 @@ public:
 
 			if(!pInstance_)
 			{
-				destroyed_ ? on_dead_reference() : create();
+				destroyed_ ? on_dead_reference() : create(std::forward<Args>(args)...);
 			}
 
 			lock_.unlock();
@@ -94,9 +95,10 @@ public:
 
 private:
 
-	static void create() 
+	template<typename... Args>
+	static void create(Args&&... args) 
 	{
-		static T obj;
+		static T obj(std::forward<Args>(args)...);
 		pInstance_ = &obj;
 	}
 
