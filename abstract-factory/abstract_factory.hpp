@@ -50,8 +50,6 @@ class abstract_factory_meta_fun
 {
 public:
 	virtual T* do_create(type2type<T>) = 0; 
-	virtual std::shared_ptr<T> do_create_shared(type2type<T>) = 0;
-	virtual std::unique_ptr<T> do_create_unique(type2type<T>) = 0;
 	virtual ~abstract_factory_meta_fun() {}
 };
 
@@ -62,7 +60,7 @@ public:
 @tparam Ts variadic parameter type is the elements of the typelist.
 @tparam MetaFun type for creating abstract functions for each type in List.
 
-@since version 1.0.0
+@since version 1.1.0
 */
 template<typename List, template<typename> class MetaFun = abstract_factory_meta_fun>
 class abstract_factoryT : public tl::gen_scatter_hierarchy<List, MetaFun>
@@ -70,22 +68,23 @@ class abstract_factoryT : public tl::gen_scatter_hierarchy<List, MetaFun>
 public:
 	using ProductList = List;
 	/// return product T by invoking new operator
+	/// !!!note!!! if use this method to create an object, user have the responsibility to delete it.
 	template<class T> T* create()
 	{
 		MetaFun<T>& meta = *this;
 		return meta.do_create(type2type<T>());
 	}
 
+	/// return product T by invoking shared_ptr
 	template<class T> std::shared_ptr<T> create_shared()
 	{
-		MetaFun<T>& meta = *this;
-		return meta.do_create_shared(type2type<T>());
+		return std::shared_ptr<T>(create<T>());
 	}
 
+	/// return product T by invoking unique_ptr
 	template<class T> std::unique_ptr<T> create_unique()
 	{
-		MetaFun<T>& meta = *this;
-		return meta.do_create_unique(type2type<T>());
+		return std::unique_ptr<T>(create<T>());	
 	}
 
 
@@ -116,18 +115,6 @@ public:
 	ConcreteProduct* do_create(type2type<AbstractProduct>)
 	{
 		return new ConcreteProduct;
-	}
-
-	/// return concrete product by invoking shared_ptr
-	std::shared_ptr<ConcreteProduct> do_create_shared(type2type<AbstractProduct>)
-	{
-		return std::make_shared<ConcreteProduct>();
-	}
-
-	/// return concrete product by invoking unique_ptr
-	std::unique_ptr<ConcreteProduct> do_create_unique(type2type<AbstractProduct>)
-	{
-		return std::make_unique<ConcreteProduct>();
 	}
 };
 
