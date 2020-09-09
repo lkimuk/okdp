@@ -43,7 +43,7 @@ namespace okdp
 For example, class Log : public okdp::singleton<T> {}; // non-dead-reference version
 	     class Log : public okdp::singleton<T, true> {}; // dead-reference version
 
-@since version 1.0.0
+@since version 1.2.0
 */
 template<typename T, bool LongLifeTime = false> class singleton;
 
@@ -51,6 +51,7 @@ template<typename T>
 class singleton<T, false>
 {
 public:
+
 	template<typename... Args>
 	static T& instance(Args&&... args) {
 		static T obj(std::forward<Args>(args)...);
@@ -74,8 +75,9 @@ template<typename T>
 class singleton<T, true>
 {
 public:
+	
 	template<typename... Args>
-	static T& instance(Args&&... args) 
+	static T& instance(Args&&... args)
 	{
 		if(!pInstance_)
 		{
@@ -84,7 +86,8 @@ public:
 
 			if(!pInstance_)
 			{
-				destroyed_ ? on_dead_reference() : create(std::forward<Args>(args)...);
+				destroyed_ ? on_dead_reference(std::forward<Args>(args)...)
+				       	: create(std::forward<Args>(args)...);
 			}
 
 			lock_.unlock();
@@ -102,10 +105,11 @@ private:
 		pInstance_ = &obj;
 	}
 
-	static void on_dead_reference()
+	template<typename... Args>
+	static void on_dead_reference(Args&&... args)
 	{
-		create();
-		new(pInstance_) T;
+		create(std::forward<Args>(args)...);
+		new(pInstance_) T(std::forward<Args>(args)...);
 		std::atexit(kill_singleton);
 		destroyed_ = false;
 
@@ -145,3 +149,4 @@ template<typename T> utils::spin_lock singleton<T, true>::lock_;
 
 
 #endif // OKDP_SINGLETON_HPP
+
