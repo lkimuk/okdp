@@ -36,6 +36,7 @@ SOFTWARE.
 	#include <concepts>
 #endif
 
+#include <iostream>
 
 namespace okdp
 {
@@ -77,21 +78,22 @@ public:
 		template<typename... Args>
 		register_type(const std::string& key, Args... args)
 		{
-			this_type::instance().map_.emplace(key, [&]{ return new T(args...); });
+			//(std::cout << ... << args) << std::endl;
+			this_type::instance().map_.emplace(key, [=]{ return new T(args...); });
 		}
 	};
 
 
 	// removes object 
-	static void unregister(const std::string& key)
+	void unregister(const std::string& key)
 	{
 		this_type::instance().map_.erase(key);
 	}
 
 
-	/// return concrete object by key by invoking new operator
+	/// return concrete object by invoking new operator
 	/// !!!note!!! if use this method user should delete it to avoid memory leaks.
-	static AbstractProduct* create(const std::string& key)
+	AbstractProduct* create(const std::string& key)
 	{
 		if(this_type::instance().map_.find(key) == this_type::instance().map_.end())
 			throw std::invalid_argument("error: unknown object type passed to factory!");
@@ -99,25 +101,25 @@ public:
 	}
 
 	
-	/// return concrete object by key by invoking shared ptr
-	static std::shared_ptr<AbstractProduct> create_shared(const std::string& key)
+	/// return concrete object by invoking shared ptr
+	std::shared_ptr<AbstractProduct> create_shared(const std::string& key)
 	{
 		return std::shared_ptr<AbstractProduct>(create(key));
 	}
 
 
 	/// return concrete object by invoking unique ptr
-	static std::unique_ptr<AbstractProduct> create_unique(const std::string& key)
+	std::unique_ptr<AbstractProduct> create_unique(const std::string& key)
 	{
 		return std::unique_ptr<AbstractProduct>(create(key));
 	}
 
 
 private:
-	static std::map<std::string, std::function<AbstractProduct*()>> map_;
+	std::map<std::string, std::function<AbstractProduct*()>> map_;
 };
 
-template<typename T> std::map<std::string, std::function<T*()>> object_factory<T>::map_;
+//template<typename T> std::map<std::string, std::function<T*()>> object_factory<T>::map_;
 
 
 #define FACTORY_REGISTER(Base, Derived, ...) \
