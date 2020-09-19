@@ -9,70 +9,74 @@
 
 
 namespace okdp
-{	
-	template<typename T>
-	class component
+{
+	
+	
+template<typename T>
+class component
+{
+	using pointer = component<T>*;
+public:
+	component(const char* name) : name_{name} {}
+	
+	virtual void add(pointer comp) = 0;
+	virtual void remove(pointer comp) = 0;
+	virtual void display(int depth) = 0;
+
+protected:
+	const char* name_;
+};
+
+
+template<typename BaseType, typename ChildType>
+class leaf : public BaseType
+{
+	using pointer = BaseType*;
+public:
+	leaf(const char* name) : BaseType{name} {}
+	
+	void add(pointer child) override {}
+	void remove(pointer child) override {}
+	
+	void display(int depth) override
 	{
-		using pointer = component<T>*;
-	public:
-		component(const char* name) : name_{name} {}
-		
-		virtual void add(pointer comp) = 0;
-		virtual void remove(pointer comp) = 0;
-		virtual void display(int depth) = 0;
-	
-	protected:
-		const char* name_;
-	};
-	
-	template<typename BaseType, typename ChildType>
-	class leaf : public BaseType
+		std::cout << std::string(depth, '-') << BaseType::name_ << std::endl;
+	}
+};
+
+
+template<typename BaseType, typename ChildType>
+class composite : public BaseType
+{
+	using pointer = BaseType*;
+public:
+	composite(const char* name) : BaseType{name} {}
+
+	void add(pointer child) override
 	{
-		using pointer = BaseType*;
-	public:
-		leaf(const char* name) : BaseType{name} {}
-		
-		void add(pointer child) {}
-		void remove(pointer child) {}
-		
-		void display(int depth) override
-		{
-			std::cout << std::string(depth, '-') << name_ << std::endl;
-		}
-	};
+		children_.push_back(child);
+	}
 	
-	template<typename BaseType, typename ChildType>
-	class composite : public BaseType
+	void remove(pointer child) override
 	{
-		using pointer = BaseType*;
-	public:
-		composite(const char* name) : BaseType{name} {}
+		auto it = std::find(std::begin(children_), std::end(children_), child);
+		if(it != std::end(children_))
+			children_.erase(it);
+		else
+			throw std::invalid_argument("error: removed object does not a child of the parent component!");
+	}
 	
-		void add(pointer child) override
-		{
-			children_.push_back(child);
-		}
+	void display(int depth) override
+	{
+		std::cout << std::string(depth, '-') << BaseType::name_ << std::endl;
 		
-		void remove(pointer child) override
-		{
-			auto it = std::find(std::begin(children_), std::end(children_), child);
-			if(it != std::end(children_))
-				children_.erase(it);
-			else
-				throw std::invalid_argument("error: removed object does not a child of the parent component!");
-		}
-		
-		void display(int depth) override
-		{
-			std::cout << std::string(depth, '-') << name_ << std::endl;
-			
-			for(auto&& child : children_)
-				child->display(depth + 2);
-		}
-		
-	private:
-		std::vector<BaseType*> children_;
-	};
+		for(auto&& child : children_)
+			child->display(depth + 2);
+	}
+	
+private:
+	std::vector<BaseType*> children_;
+};
 	
 	
 } // namespace okdp
