@@ -25,7 +25,6 @@ SOFTWARE.
 #include <algorithm> // std::find
 #include <stdexcept> // std::invalid_argument
 #include <vector>
-#include <iostream>
 
 
 namespace okdp
