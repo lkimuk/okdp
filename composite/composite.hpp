@@ -1,81 +1,67 @@
-//!!!This file is not finished.
+/*
+ *
+MIT License
+Copyright (c) 2020 gxkey(Gaoxing Li)
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE. 
+*/
+
 #ifndef OKDP_COMPOSITE_HPP
 #define OKDP_COMPOSITE_HPP
 
-#include <iostream>
 #include <algorithm> // std::find
-#include <string>
+#include <stdexcept> // std::invalid_argument
 #include <vector>
+#include <iostream>
 
 
 namespace okdp
 {
 	
-	
-template<typename T>
-class component
-{
-	using pointer = component<T>*;
-public:
-	component(const char* name) : name_{name} {}
-	
-	virtual void add(pointer comp) = 0;
-	virtual void remove(pointer comp) = 0;
-	virtual void display(int depth) = 0;
 
-protected:
-	const char* name_;
-};
+/*!
+@brief a class template to implement composite pattern.
+@tparam BaseType for abstract component.
 
-
-template<typename BaseType, typename ChildType>
-class leaf : public BaseType
-{
-	using pointer = BaseType*;
-public:
-	leaf(const char* name) : BaseType{name} {}
-	
-	void add(pointer child) override {}
-	void remove(pointer child) override {}
-	
-	void display(int depth) override
-	{
-		std::cout << std::string(depth, '-') << BaseType::name_ << std::endl;
-	}
-};
-
-
-template<typename BaseType, typename ChildType>
+@since version 1.0.0
+*/
+template<typename BaseType>
 class composite : public BaseType
 {
 	using pointer = BaseType*;
 public:
-	composite(const char* name) : BaseType{name} {}
 
-	void add(pointer child) override
+	// add child to composite
+	void add(pointer child)
 	{
 		children_.push_back(child);
 	}
 	
-	void remove(pointer child) override
+	// remove child from composite
+	void remove(pointer child)
 	{
 		auto it = std::find(std::begin(children_), std::end(children_), child);
-		if(it != std::end(children_))
-			children_.erase(it);
-		else
+		if(it == std::end(children_))
 			throw std::invalid_argument("error: removed object does not a child of the parent component!");
-	}
-	
-	void display(int depth) override
-	{
-		std::cout << std::string(depth, '-') << BaseType::name_ << std::endl;
 		
-		for(auto&& child : children_)
-			child->display(depth + 2);
+		children_.erase(it);
 	}
 	
-private:
-	std::vector<BaseType*> children_;
+protected:
+	std::vector<pointer> children_;
 };
 	
 	
