@@ -42,6 +42,8 @@ class composite : public BaseType
 {
 	using pointer = BaseType*;
 public:
+	template<typename... Args>
+	composite(Args&&... args) : BaseType(std::forward<Args>(args)...) {}
 
 	// add child to composite
 	void add(pointer child)
