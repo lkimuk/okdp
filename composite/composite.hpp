@@ -36,13 +36,16 @@ namespace okdp
 @brief a class template to implement composite pattern.
 @tparam BaseType for abstract component.
 
-@since version 1.0.0
+@since version 1.0.5
 */
 template<typename BaseType>
 class composite : public BaseType
 {
 	using pointer = BaseType*;
 	using spointer = std::unique_ptr<BaseType>;
+public:
+	using composite_type = composite<BaseType>;
+	
 public:
 	template<typename... Args>
 	composite(Args&&... args) : BaseType(std::forward<Args>(args)...) {}
