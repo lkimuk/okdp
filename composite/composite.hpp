@@ -25,6 +25,7 @@ SOFTWARE.
 #include <algorithm> // std::find
 #include <stdexcept> // std::invalid_argument
 #include <vector>
+#include <memory> // for smart pointer
 
 
 namespace okdp
@@ -41,6 +42,7 @@ template<typename BaseType>
 class composite : public BaseType
 {
 	using pointer = BaseType*;
+	using spointer = std::unique_ptr<BaseType>;
 public:
 	template<typename... Args>
 	composite(Args&&... args) : BaseType(std::forward<Args>(args)...) {}
@@ -48,7 +50,7 @@ public:
 	// add child to composite
 	void add(pointer child)
 	{
-		children_.push_back(child);
+		children_.push_back(spointer(child));
 	}
 	
 	// remove child from composite
@@ -62,7 +64,7 @@ public:
 	}
 	
 protected:
-	std::vector<pointer> children_;
+	std::vector<spointer> children_;
 };
 	
 	
