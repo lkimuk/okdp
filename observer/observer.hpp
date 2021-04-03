@@ -28,53 +28,47 @@ SOFTWARE.
 #include <vector>
 #include <memory>
 #include <algorithm>
-#include <iostream>
 
 
-namespace okdp 
-{
+namespace okdp {
 
 template<typename ConcreteSubject>
-class subject 
-{
+class subject : public ConcreteSubject {
 	using Token = std::shared_ptr<void>;
 	using Target = typename ConcreteSubject::ObserverType;
 	using WeakTarget = std::weak_ptr<Target>;
 	using SharedTarget = std::shared_ptr<Target>;
 public:
 	
-	Token attach(Target callback) {
+	Token attach(Target target) {
 		//auto token = std::make_shared<Target>(std::move(callback));
-		std::shared_ptr<Target> token(new Target(std::move(callback)), 
+		std::shared_ptr<Target> token(new Target(std::move(target)), 
 			[&](Target* obj) { delete obj; this->cleanup(); }
 		);
 		observers_.push_back(token);
-		std::cout << token.use_count() << "." << std::endl;
 		return token;
 	}
 
 	void detach(Token& t) {
-		std::cout << "before-size:" << observers_.size() << std::endl;
 		t.reset();
-		std::cout << "before-size:" << observers_.size() << std::endl;
 	}
 
-	// push observer
+	// Push Model
 	template<typename... Args>
-	void notify(Args&&... args) const {
+	void notify_push(Args&&... args) const {
 		for (auto wp : observers_) {
-			std::cout << wp.use_count() << ":";
 			if (auto sp = wp.lock())
 				(*sp)(std::forward<Args>(args)...);
 		}
 	}
 
-	// pull observer
-	/*void operator()() {
-		for (auto wp : observers_)
+	// Pull Model
+	void notify_pull() {
+		for (auto wp : observers_) {
 			if (auto sp = wp.lock())
 				(*sp)(this);
-	}*/
+		}
+	}
 
 private:
 	void cleanup()
