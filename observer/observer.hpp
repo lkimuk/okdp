@@ -2,7 +2,7 @@
  *
 MIT License
 
-Copyright (c) 2020 lkimuk(Gaoxing Li)
+Copyright (c) 2021 lkimuk(Gaoxing Li)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -30,10 +30,12 @@ SOFTWARE.
 #include <algorithm>
 
 
-namespace okdp {
+namespace okdp 
+{
 
 template<typename ConcreteSubject>
-class subject : public ConcreteSubject {
+class subject : public ConcreteSubject 
+{
 	using Token = std::shared_ptr<void>;
 	using Target = typename ConcreteSubject::ObserverType;
 	using WeakTarget = std::weak_ptr<Target>;
