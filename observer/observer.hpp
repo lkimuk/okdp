@@ -25,6 +25,7 @@ SOFTWARE.
 #ifndef OKDP_OBSERVER_HPP
 #define OKDP_OBSERVER_HPP
 
+#include "../utils/function_traits.hpp"
 #include <vector>
 #include <memory>
 #include <algorithm>
@@ -49,6 +50,11 @@ public:
 		);
 		observers_.push_back(token);
 		return token;
+	}
+	
+	template<typename F, typename T, typename... Args>
+	Token attach(const F& f, T&& head, Args&&... args) {
+		return attach(mc::binder<Target>(f, std::forward<T>(head), std::forward<Args>(args)...));
 	}
 
 	void detach(Token& t) {
